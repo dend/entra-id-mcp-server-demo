@@ -10,7 +10,7 @@ Minimal server showing how to implement Entra ID authentication with MCP and HTT
 ```
 npm install
 npm run build
-npm run start:sse
+npm run start
 ```
 
 ## Testing
