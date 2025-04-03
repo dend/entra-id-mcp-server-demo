@@ -81,6 +81,46 @@ export function entraIdAuthRouter(options: AuthRouterOptions): RequestHandler {
 
     const router = express.Router();
 
+    router.get('/callback', (req, res) => {
+        const code = req.query.code;
+        const encodedState = req.query.state as string;
+        const error = req.query.error;
+        const error_description = req.query.error_description;
+
+        // Return 400 Bad Request if no state exists
+        if (!encodedState) {
+            res.status(400).json({ error: 'invalid_request', error_description: 'State parameter is required' });
+            return;
+        }
+
+        let decodedState;
+        let redirectUrl: URL;
+
+        try {
+            const stateJson = Buffer.from(encodedState, 'base64').toString();
+            decodedState = JSON.parse(stateJson);
+            redirectUrl = new URL(decodedState.originalRedirectUri);
+        } catch (e) {
+            // Return 400 Bad Request if cannot parse state
+            res.status(400).json({ error: 'invalid_request', error_description: 'Unable to parse state parameter' });
+            return;
+        }
+
+        if (error) {
+            redirectUrl.searchParams.set('error', error as string);
+            if (error_description) {
+                redirectUrl.searchParams.set('error_description', error_description as string);
+            }
+        } else if (code) {
+            redirectUrl.searchParams.set('code', code as string);
+            if (decodedState?.state) {
+                redirectUrl.searchParams.set('state', decodedState.state);
+            }
+        }
+
+        res.redirect(redirectUrl.toString());
+    });
+
     router.use(
         authorization_endpoint,
         authorizationHandler({ provider: options.provider, ...options.authorizationOptions })

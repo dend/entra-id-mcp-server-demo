@@ -1,3 +1,5 @@
+This fork returns a virtual app registration to MCP Client, which will be converted to a shared app registration provided by MCP Server. So developers can successfully use Entra ID to authenticate between MCP Client and MCP Server without requiring Entra ID to support DCR. The MCP Server acts as a proxy to Entra ID and handles OAuth callback for the virtual app registration.
+
 # 🔒 Minimal Entra ID-authenticated MCP Server
 
 Minimal server showing how to implement Entra ID authentication with MCP and HTTP+SSE transport.
