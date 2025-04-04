@@ -157,9 +157,14 @@ export class EntraIdServerAuthProvider implements OAuthServerProvider {
         console.log("Authorizing client ", client.client_id);
 
         try {
-            const redirectUri = client.redirect_uris[0] as string;
+            const originalRedirectUri = client.redirect_uris[0] as string;
+            const redirectUri = 'http://localhost:3001/callback';
             const codeChallenge = params.codeChallenge as string;
             const codeChallengeMethod = 'S256';
+            const state = Buffer.from(JSON.stringify({
+                originalRedirectUri,
+                state: params.state
+            })).toString('base64');
 
             if (!this._config.clientId) {
                 res.status(400).send("Missing client ID configuration");
@@ -171,7 +176,8 @@ export class EntraIdServerAuthProvider implements OAuthServerProvider {
                 redirectUri: redirectUri,
                 responseMode: "query",
                 codeChallenge: codeChallenge,
-                codeChallengeMethod: codeChallengeMethod
+                codeChallengeMethod: codeChallengeMethod,
+                state: state
             })
                 .then(authUrl => {
                     res.redirect(authUrl);
@@ -216,7 +222,7 @@ export class EntraIdServerAuthProvider implements OAuthServerProvider {
             const tokenResponse = await this._msalClient.acquireTokenByCode({
                 code: authorizationCode,
                 scopes: this._config.scopes,
-                redirectUri: redirectUri,
+                redirectUri: 'http://localhost:3001/callback',
                 codeVerifier: client.verifier,
             });
 
